@@ -13,7 +13,6 @@ const adapter = new PrismaAdapter(prisma.session, prisma.user);
 export const lucia = new Lucia(adapter, {
   sessionCookie: {
     attributes: {
-      // set to `true` when deploying to HTTPS (Vercel)
       secure: process.env.NODE_ENV === "production",
     },
   },
