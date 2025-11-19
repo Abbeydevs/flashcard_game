@@ -24,3 +24,36 @@ model Session {
   
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model Module {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+
+  decks       Deck[]
+}
+
+model Deck {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  
+  moduleId    String
+  module      Module   @relation(fields: [moduleId], references: [id])
+
+  cards       Card[]
+  @@unique([moduleId, name]) 
+}
+
+model Card {
+  id          String   @id @default(cuid())
+  question    String
+  options     Json     
+  explanation String?
+  reference   String? 
+  
+  deckId      String
+  deck        Deck     @relation(fields: [deckId], references: [id])
+
+  // We will add UserPerformance here in Phase 4
+}
