@@ -24,16 +24,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { signup } from "@/app/(auth)/actions";
+import { login } from "@/app/(auth)/actions";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters" }),
+  password: z.string().min(1, { message: "Password cannot be empty" }),
 });
 
-export function SignupForm() {
+export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -53,7 +51,7 @@ export function SignupForm() {
       formData.append("email", values.email);
       formData.append("password", values.password);
 
-      const result = await signup(formData);
+      const result = await login(formData);
 
       if (result?.error) {
         setError(result.error);
@@ -64,10 +62,8 @@ export function SignupForm() {
   return (
     <Card className="w-[350px]">
       <CardHeader>
-        <CardTitle>Sign Up</CardTitle>
-        <CardDescription>
-          Create your account to start learning.
-        </CardDescription>
+        <CardTitle>Log In</CardTitle>
+        <CardDescription>Welcome back to FlashCard.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -105,16 +101,16 @@ export function SignupForm() {
             )}
 
             <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? "Creating Account..." : "Sign Up"}
+              {isPending ? "Logging In..." : "Log In"}
             </Button>
           </form>
         </Form>
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link href="/login" className="text-primary hover:underline">
-            Log in
+          Don't have an account?{" "}
+          <Link href="/signup" className="text-primary hover:underline">
+            Sign Up
           </Link>
         </p>
       </CardFooter>
