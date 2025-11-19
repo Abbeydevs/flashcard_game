@@ -15,6 +15,8 @@ model User {
   createdAt      DateTime  @default(now())
   
   sessions       Session[]
+
+  userCardPerformances UserCardPerformance[]
 }
 
 model Session {
@@ -57,4 +59,28 @@ model Card {
   deck        Deck     @relation(fields: [deckId], references: [id])
 
   // We will add UserPerformance here in Phase 4
+
+  userCardPerformances UserCardPerformance[]
+}
+
+model UserCardPerformance {
+  id        String   @id @default(cuid())
+  userId    String
+  cardId    String
+  
+  status    CardStatus @default(NEW)
+  score     Int        @default(0)
+  lastSeen  DateTime   @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, cardId])
+}
+
+enum CardStatus {
+  NEW
+  LEARNING
+  REVIEW
+  MASTERED
 }

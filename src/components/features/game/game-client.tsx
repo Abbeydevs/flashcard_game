@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, CheckCircle, XCircle, RotateCcw } from "lucide-react";
 import Link from "next/link";
+import { saveCardProgress } from "@/app/(auth)/actions";
 
 type CardType = {
   id: string;
@@ -42,7 +43,7 @@ export function GameClient({ deckName, cards }: GameClientProps) {
     : [];
 
   const handleOptionClick = (index: number, isCorrect: boolean) => {
-    if (isAnswered) return; // Prevent changing answer
+    if (isAnswered) return;
 
     setSelectedOption(index);
     setIsAnswered(true);
@@ -50,6 +51,8 @@ export function GameClient({ deckName, cards }: GameClientProps) {
     if (isCorrect) {
       setScore((prev) => prev + 1);
     }
+
+    saveCardProgress(currentCard.id, isCorrect);
   };
 
   const handleNext = () => {

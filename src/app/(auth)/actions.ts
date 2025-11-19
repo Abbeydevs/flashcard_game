@@ -6,6 +6,7 @@ import { Argon2id } from "oslo/password";
 import { cookies } from "next/headers";
 import { lucia, prisma } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { validateRequest } from "@/lib/session";
 
 const signupSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -151,4 +152,62 @@ export async function login(formData: FormData): Promise<ActionResult> {
 
   // 4. Redirect to Protected Dashboard
   return redirect("/dashboard");
+}
+
+export async function saveCardProgress(cardId: string, isCorrect: boolean) {
+  const { user } = await validateRequest();
+  if (!user) return { error: "Unauthorized" };
+
+  try {
+    const existingRecord = await prisma.userCardPerformance.findUnique({
+      where: {
+        userId_cardId: {
+          userId: user.id,
+          cardId: cardId,
+        },
+      },
+    });
+
+    let newScore = existingRecord ? existingRecord.score : 0;
+    let newStatus: "NEW" | "LEARNING" | "REVIEW" | "MASTERED" = existingRecord
+      ? existingRecord.status
+      : "NEW";
+
+    if (isCorrect) {
+      newScore = Math.min(100, newScore + 10);
+
+      if (newScore >= 80) newStatus = "MASTERED";
+      else if (newScore >= 50) newStatus = "REVIEW";
+      else newStatus = "LEARNING";
+    } else {
+      newScore = Math.max(0, newScore - 20);
+      newStatus = "LEARNING";
+    }
+
+    await prisma.userCardPerformance.upsert({
+      where: {
+        userId_cardId: {
+          userId: user.id,
+          cardId: cardId,
+        },
+      },
+      update: {
+        score: newScore,
+        status: newStatus,
+        lastSeen: new Date(),
+      },
+      create: {
+        userId: user.id,
+        cardId: cardId,
+        score: newScore,
+        status: newStatus,
+        lastSeen: new Date(),
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to save progress:", error);
+    return { error: "Failed to save progress" };
+  }
 }
