@@ -12,3 +12,14 @@ export async function getModulesWithDecks() {
 
   return modules;
 }
+
+export async function getDeckWithCards(deckId: string) {
+  const deck = await prisma.deck.findUnique({
+    where: { id: deckId },
+    include: {
+      cards: true,
+    },
+  });
+
+  return deck;
+}
