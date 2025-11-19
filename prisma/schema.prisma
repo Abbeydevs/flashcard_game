@@ -51,6 +51,7 @@ model Card {
   options     Json     
   explanation String?
   reference   String? 
+  difficulty  Int      @default(1)
   
   deckId      String
   deck        Deck     @relation(fields: [deckId], references: [id])

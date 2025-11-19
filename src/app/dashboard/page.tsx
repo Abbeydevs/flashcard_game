@@ -1,8 +1,8 @@
 import { validateRequest } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { LogoutButton } from "@/components/features/auth/logout-button";
+import { getModulesWithDecks } from "@/db/queries";
+import { DeckSelectionGrid } from "@/components/features/dashboard/deck-selection-grid";
 
 export default async function DashboardPage() {
   const { user } = await validateRequest();
@@ -11,25 +11,23 @@ export default async function DashboardPage() {
     return redirect("/login");
   }
 
+  const modulesWithDecks = await getModulesWithDecks();
+
   return (
-    <div className="container mx-auto py-12">
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl">
-            Welcome to FlashCard, {user.email}!
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            This is your protected dashboard. You can now start building the
-            game features.
-          </p>
-          <p className="text-sm font-medium">
-            **Next Step:** Build the Deck Selection UI here.
-          </p>
-          <LogoutButton />
-        </CardContent>
-      </Card>
+    <div className="container mx-auto py-12 space-y-8">
+      <div className="flex justify-between items-center border-b pb-4">
+        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
+          Welcome back, {user.email}!
+        </h1>
+        <LogoutButton />
+      </div>
+
+      <p className="text-lg text-muted-foreground">
+        Select a certification module or jump back into a deck to continue your
+        preparation.
+      </p>
+
+      <DeckSelectionGrid modules={modulesWithDecks} />
     </div>
   );
 }
