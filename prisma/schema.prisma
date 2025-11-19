@@ -58,7 +58,7 @@ model Card {
   deckId      String
   deck        Deck     @relation(fields: [deckId], references: [id])
 
-  // We will add UserPerformance here in Phase 4
+  
 
   userCardPerformances UserCardPerformance[]
 }

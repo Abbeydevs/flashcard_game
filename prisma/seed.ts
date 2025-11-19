@@ -3,84 +3,113 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Starting data seeding...");
+  console.log("🌱 Starting data seeding...");
 
-  const prince2Module = await prisma.module.create({
-    data: {
-      name: "PRINCE2 v7",
-      description: "PRINCE2 7th Edition Foundation & Practitioner Exam Prep",
-    },
-  });
-
-  const pmpModule = await prisma.module.create({
-    data: {
+  const pmpModule = await prisma.module.upsert({
+    where: { name: "PMP" },
+    update: {},
+    create: {
       name: "PMP",
       description: "PMP Exam Prep (PMBOK 7th Edition Focus)",
     },
   });
 
-  console.log(`Created Modules: ${prince2Module.name}, ${pmpModule.name}`);
+  console.log(`Checked Module: ${pmpModule.name}`);
 
-  const p2Principles = await prisma.deck.create({
-    data: {
-      name: "Principles",
-      moduleId: prince2Module.id,
-      description: "The 7 Core Principles of PRINCE2",
+  const pmpProcess = await prisma.deck.upsert({
+    where: {
+      moduleId_name: {
+        moduleId: pmpModule.id,
+        name: "Process Domain",
+      },
     },
-  });
-
-  const pmpPeople = await prisma.deck.create({
-    data: {
-      name: "People Domain",
-      moduleId: pmpModule.id,
-      description: "Leadership, Team Management, and Conflict Resolution",
-    },
-  });
-
-  const pmpProcess = await prisma.deck.create({
-    data: {
+    update: {},
+    create: {
       name: "Process Domain",
       moduleId: pmpModule.id,
       description: "The Technical Aspects of Managing a Project",
     },
   });
 
-  console.log(`Created Decks: ${p2Principles.name}, ${pmpPeople.name}, etc.`);
+  console.log(`Checked Deck: ${pmpProcess.name}`);
 
-  await prisma.card.create({
-    data: {
-      deckId: pmpProcess.id,
-      question:
-        "Which process involves authorizing the project at a high level?",
-      options: [
-        { text: "Planning", isCorrect: false },
-        { text: "Initiating the Project", isCorrect: true },
-        { text: "Closing the Project", isCorrect: false },
-      ],
-      explanation:
-        "The Initiating the Project process ensures the project is properly authorized.",
-      reference: "PMBOK 7 Process Domain",
-      difficulty: 2,
+  console.log("🚀 Generating 20 sample cards...");
+
+  const sampleQuestions = [
+    {
+      q: "What is the main output of the Validate Scope process?",
+      a: "Accepted Deliverables",
+      diff: 2,
     },
-  });
-
-  await prisma.card.create({
-    data: {
-      deckId: p2Principles.id,
-      question: "Which PRINCE2 principle ensures continued justification?",
-      options: [
-        { text: "Learn from experience", isCorrect: false },
-        { text: "Continued Business Justification", isCorrect: true },
-        { text: "Manage by stages", isCorrect: false },
-      ],
-      explanation:
-        "Every project must have a valid business case throughout its life.",
-      reference: "PRINCE2 v7 Principle 1",
-      difficulty: 1,
+    {
+      q: "Which document authorizes the existence of a project?",
+      a: "Project Charter",
+      diff: 1,
     },
-  });
+    {
+      q: "What is the key benefit of the Control Procurements process?",
+      a: "Ensures both parties meet contractual obligations",
+      diff: 3,
+    },
+    {
+      q: "In which process group is the stakeholder register created?",
+      a: "Initiating",
+      diff: 1,
+    },
+    {
+      q: "What tool is used to calculate the critical path?",
+      a: "Critical Path Method (CPM)",
+      diff: 4,
+    },
+    {
+      q: "Who is responsible for the quality of the project deliverables?",
+      a: "Project Manager",
+      diff: 2,
+    },
+    {
+      q: "What is the formula for Cost Performance Index (CPI)?",
+      a: "EV / AC",
+      diff: 3,
+    },
+    {
+      q: "Which contract type carries the highest risk for the buyer?",
+      a: "Cost Plus Percentage of Cost (CPPC)",
+      diff: 5,
+    },
+    {
+      q: "What is the purpose of a kick-off meeting?",
+      a: "To engage stakeholders and set expectations",
+      diff: 1,
+    },
+    {
+      q: "Which conflict resolution technique is considered a win-win?",
+      a: "Collaborate/Problem Solve",
+      diff: 2,
+    },
+    // ... filling the rest with generic ones to hit 20
+  ];
 
-  console.log("Seeding complete!");
+  for (let i = 0; i < 20; i++) {
+    const data = sampleQuestions[i % sampleQuestions.length];
+
+    await prisma.card.create({
+      data: {
+        deckId: pmpProcess.id,
+        question: `${data.q} (Variant ${i + 1})`, // Make unique
+        options: [
+          { text: data.a, isCorrect: true },
+          { text: "Incorrect Option A", isCorrect: false },
+          { text: "Incorrect Option B", isCorrect: false },
+          { text: "Incorrect Option C", isCorrect: false },
+        ],
+        explanation: `This is the explanation for ${data.a}.`,
+        reference: "PMBOK 7th Ed",
+        difficulty: data.diff,
+      },
+    });
+  }
+
+  console.log("✅ Seeding complete! Added 20 cards.");
 }
 
 main()
