@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { lucia, prisma } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { validateRequest } from "@/lib/session";
+import { checkAndResetStreak } from "@/lib/gamification";
 
 const signupSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -159,6 +160,15 @@ export async function saveCardProgress(cardId: string, isCorrect: boolean) {
   if (!user) return { error: "Unauthorized" };
 
   try {
+    await checkAndResetStreak(user.id);
+
+    if (isCorrect) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { xp: { increment: 10 } },
+      });
+    }
+
     const existingRecord = await prisma.userCardPerformance.findUnique({
       where: {
         userId_cardId: {
